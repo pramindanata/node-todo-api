@@ -10,6 +10,21 @@ let app = express();
 
 app.use(bodyParser.json());
 
+app.get('/todos', (req, res) => {
+    Todo.find({}, 'id text completed completedAt').then(docs => {
+        res.json({
+            status: "OK",
+            data: docs,
+        });
+    }, e => {
+        res.status(400).json({
+            status: "FAILED",
+            message: "Unable to fetch all todos",
+            error: e
+        });
+    });
+});
+
 app.post('/todos', (req, res) => {
     let todo = new Todo({
         text: req.body.text
@@ -24,7 +39,7 @@ app.post('/todos', (req, res) => {
         res.status(400).json({
             status: "FAILED",
             message: "Unable to add new todo",
-            content: e
+            error: e
         })
     });
 });
