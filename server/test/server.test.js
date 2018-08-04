@@ -1,27 +1,27 @@
 const expect = require('expect');
 const request = require('supertest');
 
-const {app} = require('../server');
-const {Todo} = require('../models/todo');
+const { app } = require('../server');
+const { Todo } = require('../models/todo');
 
 const todos = [
     {
-        "completed": false,
-        "completedAt": null,
-        "_id": "5b6564693c10dd27c428e511",
-        "text": "Buy some fruits"
+        completed: false,
+        completedAt: null,
+        _id: "5b6564693c10dd27c428e511",
+        text: "Buy some fruits"
     },
     {
-        "completed": false,
-        "completedAt": null,
-        "_id": "5b6564723c10dd27c428e512",
-        "text": "Have lunch"
+        completed: false,
+        completedAt: null,
+        _id: "5b6564723c10dd27c428e512",
+        text: "Have lunch"
     },
     {
-        "completed": false,
-        "completedAt": null,
-        "_id": "5b6564793c10dd27c428e513",
-        "text": "Go outside"
+        completed: false,
+        completedAt: null,
+        _id: "5b6564793c10dd27c428e513",
+        text: "Go outside"
     }
 ];
 
