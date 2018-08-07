@@ -1,8 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const { ObjectID } = require('mongodb');
 
 const { mongoose } = require('./db/mongoose');
-
 const { User } = require('./models/user');
 const { Todo } = require('./models/todo');
 
@@ -19,7 +19,43 @@ app.get('/todos', (req, res) => {
     }, e => {
         res.status(400).json({
             status: "FAILED",
-            message: "Unable to fetch all todos",
+            message: "Unable to get all todos",
+            error: e
+        });
+    });
+});
+
+app.get('/todos/:id', (req, res) => {
+    const id = req.params.id;
+
+    if (!ObjectID.isValid(id)) {
+        res.status(404)
+            .json({
+                status: "FAILED",
+                message: "Data not found",
+            });
+    }
+
+    Todo.findById({
+        _id: id 
+    }, '_id text completed completedAt')
+    .then(doc => {
+        if (!doc) {
+            res.status(404)
+                .json({
+                    status: "FAILED",
+                    message: "Data not found",
+                });
+        }
+
+        res.json({
+            status: "OK",
+            data: doc,
+        });
+    }, e => {
+        res.status(400).json({
+            status: "FAILED",
+            message: "Unable to get a todo",
             error: e
         });
     });
