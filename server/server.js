@@ -29,10 +29,10 @@ app.get('/todos/:id', (req, res) => {
     const id = req.params.id;
 
     if (!ObjectID.isValid(id)) {
-        res.status(404)
+        return res.status(404)
             .json({
                 status: "FAILED",
-                message: "Data not found",
+                message: "Invalid ID Given",
             });
     }
 
@@ -41,19 +41,19 @@ app.get('/todos/:id', (req, res) => {
     }, '_id text completed completedAt')
     .then(doc => {
         if (!doc) {
-            res.status(404)
+            return res.status(404)
                 .json({
                     status: "FAILED",
                     message: "Data not found",
                 });
         }
 
-        res.json({
+        return res.json({
             status: "OK",
             data: doc,
         });
     }, e => {
-        res.status(400).json({
+        return res.status(400).json({
             status: "FAILED",
             message: "Unable to get a todo",
             error: e

@@ -1,5 +1,6 @@
 const expect = require('expect');
 const request = require('supertest');
+const { ObjectID } = require('mongodb');
 
 const { app } = require('../server');
 const { Todo } = require('../models/todo');
@@ -8,19 +9,19 @@ const todos = [
     {
         completed: false,
         completedAt: null,
-        _id: "5b6564693c10dd27c428e511",
+        _id: new ObjectID(),
         text: "Buy some fruits"
     },
     {
         completed: false,
         completedAt: null,
-        _id: "5b6564723c10dd27c428e512",
+        _id: new ObjectID(),
         text: "Have lunch"
     },
     {
         completed: false,
         completedAt: null,
-        _id: "5b6564793c10dd27c428e513",
+        _id: new ObjectID(),
         text: "Go outside"
     }
 ];
@@ -39,13 +40,63 @@ describe('# GET /todos', () => {
                     .expect(res => {
                         expect(res.body).toEqual({
                             status: "OK",
-                            data: todos
+                            data: todos.map(todo => {
+                                return {
+                                    completed: todo.completed,
+                                    completedAt: todo.completedAt,
+                                    _id: todo._id.toHexString(),
+                                    text: todo.text
+                                }
+                            })
                         });
                     })
                     .end(done);
             }, e => {
                 throw e;
             });
+    });
+});
+
+describe('# GET /todos:id', () => {
+    let todo = todos[0];
+
+    it('Should return todo doc', done => {
+        Todo.create(todo)
+            .then(() => {
+                request(app)
+                    .get(`/todos/${todo._id}`)
+                    .expect(200)
+                    .expect(res => {
+                        expect(res.body).toEqual({
+                            status: "OK",
+                            data: {
+                                completed: todo.completed,
+                                completedAt: todo.completedAt,
+                                _id: todo._id.toHexString(),
+                                text: todo.text
+                            }
+                        });
+                    }) 
+                    .end(done);
+            }, e => {
+                throw e;
+            });
+    });
+
+    it('Should return 404 if todo not found', done => {
+        request(app)
+            .get('/todos/123')
+            .expect(404)
+            .end(done);
+    });
+
+    it('Should return 404 for non object ID given', done => {
+        let id = new ObjectID().toHexString();
+        
+        request(app)
+            .get(`/todos/${id}`)
+            .expect(404)
+            .end(done);
     });
 });
 
