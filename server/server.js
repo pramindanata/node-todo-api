@@ -29,7 +29,7 @@ app.get('/todos/:id', (req, res) => {
     const id = req.params.id;
 
     if (!ObjectID.isValid(id)) {
-        return res.status(404)
+        return res.status(400)
             .json({
                 status: "FAILED",
                 message: "Invalid ID Given",
@@ -59,6 +59,40 @@ app.get('/todos/:id', (req, res) => {
             error: e
         });
     });
+});
+
+app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id;
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(400)
+            .json({
+                status: "FAILED",
+                message: "Invalid ID Given",
+            });
+    }
+
+    Todo.findByIdAndRemove(id)
+        .then(doc => {
+            if (!doc) {
+                return res.status(404)
+                    .json({
+                        status: "FAILED",
+                        message: "Data not found",
+                    });
+            }
+
+            return res.json({
+                status: "OK",
+                message: "Todo has been removed",
+            });
+        }, e => {
+            return res.status(400).json({
+                status: "FAILED",
+                message: "Unable to get a todo",
+                error: e
+            });
+        });
 });
 
 app.post('/todos', (req, res) => {
