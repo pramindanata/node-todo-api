@@ -57,7 +57,7 @@ describe('# GET /todos', () => {
     });
 });
 
-describe('# GET /todos:id', () => {
+describe('# GET /todos/:id', () => {
     let todo = todos[0];
 
     it('Should return todo doc', done => {
@@ -148,7 +148,53 @@ describe('# POST /todos', () => {
     });
 });
 
-describe('# DELETE /todos:id', () => {
+describe('# PATCH /todos/:id', () => {
+    it('Should update a todo', done => {
+        let todo = todos[0];
+        
+        Todo.create(todo)
+            .then(doc => {
+                request(app)
+                    .patch(`/todos/${doc._id}`)
+                    .send({
+                        text: 'Updated text',
+                        completed: true
+                    })
+                    .expect(200)
+                    .expect(res => {
+                        let body = res.body;
+
+                        expect(body.data.text).toBe('Updated text');
+                        expect(body.data.completed).toBe(true);
+                        expect(typeof body.data.completedAt).toBe('number');
+                    })
+                    .end(done);
+            });
+    });
+
+    it('Should clear completedAt when todo is not completed', done => {
+        let todo = todos[1];
+
+        Todo.create(todo)
+            .then(doc => {
+                request(app)
+                    .patch(`/todos/${doc._id}`)
+                    .send({
+                        completed: false
+                    })
+                    .expect(200)
+                    .expect(res => {
+                        let body = res.body;
+
+                        expect(body.data.completed).toBe(false);
+                        expect(body.data.completedAt).toBe(null);
+                    })
+                    .end(done);
+            });
+    });
+})
+
+describe('# DELETE /todos/:id', () => {
     it('Should remove a todo', done => {
         let todo = todos[0];
         
