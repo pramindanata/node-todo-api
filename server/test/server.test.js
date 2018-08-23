@@ -84,18 +84,18 @@ describe('# GET /todos:id', () => {
     });
 
     it('Should return 404 if todo not found', done => {
-        request(app)
-            .get('/todos/123')
-            .expect(404)
-            .end(done);
-    });
-
-    it('Should return 404 for non object ID given', done => {
         let id = new ObjectID().toHexString();
         
         request(app)
             .get(`/todos/${id}`)
             .expect(404)
+            .end(done);
+    });
+
+    it('Should return 400 for non object ID given', done => {
+        request(app)
+            .get('/todos/123')
+            .expect(400)
             .end(done);
     });
 });
@@ -145,5 +145,52 @@ describe('# POST /todos', () => {
                 })
                 .catch(err => done(err));
             });
+    });
+});
+
+describe('# DELETE /todos:id', () => {
+    it('Should remove a todo', done => {
+        let todo = todos[0];
+        
+        Todo.create(todo)
+            .then(() => {
+                request(app)
+                    .delete(`/todos/${todo._id}`)
+                    .expect(200)
+                    .expect(res => {
+                        expect(res.body).toEqual({
+                            status: "OK",
+                            message: "Todo has been removed"
+                        });
+                    })
+                    .end((err, res) => {
+                        if (err) {
+                            done(err);
+                        }
+
+                        Todo.findById(todo._id)
+                            .then(doc => {
+                                expect(doc).toBeFalsy();
+                                done();
+                            })
+                            .catch(e => done(e));
+                    });
+            });
+    });
+
+    it('Should return 404 if todo not found', done => {
+        let id = new ObjectID().toHexString();
+        
+        request(app)
+            .delete(`/todos/${id}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('Should return 400 if invalid Object ID Given', done => {
+        request(app)
+            .delete('/todos/123')
+            .expect(400)
+            .end(done);
     });
 });
