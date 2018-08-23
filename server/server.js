@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { ObjectID } = require('mongodb');
@@ -22,6 +23,25 @@ app.get('/todos', (req, res) => {
             message: "Unable to get all todos",
             error: e
         });
+    });
+});
+
+app.post('/todos', (req, res) => {
+    let todo = new Todo({
+        text: req.body.text
+    });
+
+    todo.save().then(() => {
+        res.json({
+            status: "OK",
+            message: "New todo added"
+        });
+    }, e => {
+        res.status(400).json({
+            status: "FAILED",
+            message: "Unable to add new todo",
+            error: e
+        })
     });
 });
 
@@ -95,23 +115,58 @@ app.delete('/todos/:id', (req, res) => {
         });
 });
 
-app.post('/todos', (req, res) => {
-    let todo = new Todo({
-        text: req.body.text
-    });
+app.patch('/todos/:id', (req, res) => {
+    let id = req.params.id;
+    let body = _.pick(req.body, [
+        'text',
+        'completed'
+    ]);
 
-    todo.save().then(() => {
-        res.json({
-            status: "OK",
-            message: "New todo added"
-        });
-    }, e => {
-        res.status(400).json({
-            status: "FAILED",
-            message: "Unable to add new todo",
-            error: e
+    if (!ObjectID.isValid(id)) {
+        return res.status(400)
+            .json({
+                status: "FAILED",
+                message: "Invalid ID Given",
+            });
+    }
+
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime();
+    } else {
+        body.completedAt = null;
+    }
+
+    Todo.findByIdAndUpdate(id, 
+        { 
+            $set: body 
+        }, 
+        {
+            fields: '_id text completed completedAt',
+            new: true
         })
-    });
+        .then(doc => {
+            if (!doc) {
+                return res.status(404)
+                    .json({
+                        status: "FAILED",
+                        message: "Data not found",
+                    }); 
+            }
+
+            res.json({
+                status: "OK",
+                data: doc,
+                message: "Todo has been updated"
+            });
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: "FAILED",
+                    message: "Unable to update a todo",
+                    error: err
+                })
+        });
 });
 
 app.listen(3000, () => {
