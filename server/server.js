@@ -6,11 +6,13 @@ const bodyParser = require('body-parser');
 const { ObjectID } = require('mongodb');
 
 const { Todo } = require('./models/todo');
+const { User } = require('./models/user');
 
 let app = express();
 
 app.use(bodyParser.json());
 
+// Todo
 app.get('/todos', (req, res) => {
     Todo.find({}, 'id text completed completedAt').then(docs => {
         res.json({
@@ -167,6 +169,30 @@ app.patch('/todos/:id', (req, res) => {
                     error: err
                 })
         });
+});
+
+app.post('/users', (req, res) => {
+    let body = _.pick(req.body, ['email', 'password']);
+    let user = new User({
+        email: body.email,
+        password: body.password
+    })
+
+    user.save()
+        .then(() => {
+            res.json({
+                status: "OK",
+                message: "New user added"
+            });
+        })
+        .catch((e) => {
+            res.status(400).json({
+                status: "FAILED",
+                message: "Unable to add new user",
+                error: e
+            })
+        });
+
 });
 
 app.listen(3000, () => {
