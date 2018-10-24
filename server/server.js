@@ -173,8 +173,6 @@ app.patch('/todos/:id', (req, res) => {
 });
 
 app.get('/users/me', authenticate, (req, res) => {
-    let token = req.header('x-auth');
-
     res.send(req.user.toJson());
 });
 
