@@ -1,6 +1,8 @@
 const { mongoose } = require('../db/mongoose');
+const _ = require('lodash');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
+const { ObjectID } = require('mongodb');
 
 let UserSchema = new mongoose.Schema({
     email: {
@@ -33,6 +35,13 @@ let UserSchema = new mongoose.Schema({
     ]
 });
 
+UserSchema.methods.toJson = function () {
+    let user = this;
+    let userObject = user.toObject();
+
+    return _.pick(userObject, ['_id', 'email']);
+}
+
 UserSchema.methods.generateAuthToken = function () {
     let user = this;
     let access = 'auth';
@@ -45,6 +54,25 @@ UserSchema.methods.generateAuthToken = function () {
             return token;
         });
 };  
+
+UserSchema.statics.findByToken = function (token) {
+    let User = this;
+    let decoded;
+
+    try {
+        decoded = jwt.verify(token, 'abc123');
+    } catch (e) {
+        return Promise.reject();
+    }
+
+    console.log(decoded)
+
+    return User.findOne({
+        _id: decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    })
+};
 
 let User = mongoose.model('User', UserSchema);
 

@@ -7,6 +7,7 @@ const { ObjectID } = require('mongodb');
 
 const { Todo } = require('./models/todo');
 const { User } = require('./models/user');
+const { authenticate } =  require('./middleware/authenticate');
 
 let app = express();
 
@@ -171,6 +172,12 @@ app.patch('/todos/:id', (req, res) => {
         });
 });
 
+app.get('/users/me', authenticate, (req, res) => {
+    let token = req.header('x-auth');
+
+    res.send(req.user.toJson());
+});
+
 app.post('/users', (req, res) => {
     let body = _.pick(req.body, ['email', 'password']);
     let user = new User(body);
@@ -184,7 +191,7 @@ app.post('/users', (req, res) => {
                 .json({
                     status: "OK",
                     message: "New user added",
-                    data: user
+                    data: user.toJson()
                 });
         })
         .catch((e) => {
