@@ -3,6 +3,7 @@ require('./config/config');
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcryptjs');
 const { ObjectID } = require('mongodb');
 
 const { Todo } = require('./models/todo');
@@ -199,6 +200,29 @@ app.post('/users', (req, res) => {
                 error: e
             })
         });
+});
+
+app.post('/login', (req, res) => {
+    let body = _.pick(req.body, ['email', 'password']);
+
+    User.findByCredentials(body.email, body.password)
+        .then((user) => {
+            return user.generateAuthToken()
+                .then((token) => {
+                    res.header('x-auth', token)
+                        .send({
+                            status: "OK",
+                            data: user,
+                        });
+                });
+        })
+        .catch((err) => {
+            res.status(401)
+                .send({
+                    status: "FAILED",
+                    message: err,
+                });
+        })
 });
 
 app.listen(3000, () => {
