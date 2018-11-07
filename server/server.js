@@ -217,7 +217,7 @@ app.post('/login', (req, res) => {
                 });
         })
         .catch((err) => {
-            res.status(401)
+            res.status(400)
                 .send({
                     status: "FAILED",
                     message: err,
