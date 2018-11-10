@@ -63,7 +63,7 @@ const populateUsers = (done) => {
             let userOne = new User(users[0]).save();
             let userTwo = new User(users[1]).save();
 
-            return Promise.all([userOne, userTwo]);
+            return Promise.all([userOne, userTwo]);x
         })
         .then(() => done()); 
 }
