@@ -15,8 +15,8 @@ let app = express();
 app.use(bodyParser.json());
 
 // Todo
-app.get('/todos', (req, res) => {
-    Todo.find({}, 'id text completed completedAt').then(docs => {
+app.get('/todos', authenticate, (req, res) => {
+    Todo.find({ userId: req.user._id }, 'id text completed completedAt').then(docs => {
         res.json({
             status: "OK",
             data: docs,
@@ -30,9 +30,10 @@ app.get('/todos', (req, res) => {
     });
 });
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
     let todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        userId: req.user._id
     });
 
     todo.save().then(() => {
@@ -49,7 +50,7 @@ app.post('/todos', (req, res) => {
     });
 });
 
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
     const id = req.params.id;
 
     if (!ObjectID.isValid(id)) {
@@ -61,7 +62,8 @@ app.get('/todos/:id', (req, res) => {
     }
 
     Todo.findById({
-        _id: id 
+        _id: id,
+        userId: req.user._id 
     }, '_id text completed completedAt')
     .then(doc => {
         if (!doc) {
@@ -85,7 +87,7 @@ app.get('/todos/:id', (req, res) => {
     });
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
     const id = req.params.id;
 
     if (!ObjectID.isValid(id)) {
@@ -96,7 +98,10 @@ app.delete('/todos/:id', (req, res) => {
             });
     }
 
-    Todo.findByIdAndRemove(id)
+    Todo.findOneAndRemove({
+        _id: id,
+        userId: req.user._id
+    })
         .then(doc => {
             if (!doc) {
                 return res.status(404)
@@ -119,7 +124,7 @@ app.delete('/todos/:id', (req, res) => {
         });
 });
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
     let id = req.params.id;
     let body = _.pick(req.body, [
         'text',
@@ -140,7 +145,10 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = null;
     }
 
-    Todo.findByIdAndUpdate(id, 
+    Todo.findOneAndUpdate({
+        _id: id,
+        userId: req.user._id
+    }, 
         { 
             $set: body 
         }, 
@@ -173,6 +181,7 @@ app.patch('/todos/:id', (req, res) => {
         });
 });
 
+// User
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user.toJson());
 });
@@ -202,6 +211,8 @@ app.post('/users', (req, res) => {
         });
 });
 
+
+// Auth 
 app.post('/login', (req, res) => {
     let body = _.pick(req.body, ['email', 'password']);
 

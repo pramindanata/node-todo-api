@@ -14,6 +14,10 @@ const Todo = mongoose.model('Todo', {
     completedAt: {
         type: Number,
         default: null
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     }
 });
 
