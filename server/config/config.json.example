@@ -1,0 +1,10 @@
+{
+    "test": {
+        "PORT": PORT,
+        "MONGODB_URI": URI
+    },
+    "development": {
+        "PORT": PORT,
+        "MONGODB_URI": URI
+    }
+}
